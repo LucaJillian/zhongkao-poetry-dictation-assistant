@@ -1,0 +1,2475 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古诗背诵助手</title>
+    <style>
+        :root {
+            --bg: #E8F5E9;
+            --bg-card: #FFFFFF;
+            --sidebar-bg: #C8E6C9;
+            --topbar-bg: #388E3C;
+            --topbar-hover: #2E7D32;
+            --accent: #43A047;
+            --accent-mid: #66BB6A;
+            --accent-light: #E8F5E9;
+            --text: #1B5E20;
+            --text-sub: #388E3C;
+            --text-muted: #81C784;
+            --border: #A5D6A7;
+            --divider: #C8E6C9;
+            --correct: #43A047;
+            --error: #EF5350;
+            --hint: #F9A825;
+            --danger: #EF5350;
+            --btn-sec: #81C784;
+            --btn-sec-hov: #43A047;
+            --btn-edit: #90CAF9;
+            --btn-edit-hov: #64B5F6;
+            --lb-selected-bg: #43A047;
+            --lb-selected-fg: #FFFFFF;
+            --lb-hover-bg: #A5D6A7;
+            --lb-hover-fg: #1B5E20;
+            --hl-yellow: #FFF176;
+            --hl-green: #A8F5C0;
+            --hl-pink: #FFB3D1;
+            --hl-blue: #90CAF9;
+            --miss-bg: #E0E0E0;
+            --miss-fg: #888888;
+            --shadow-sm: 0 1px 3px rgba(56, 142, 60, 0.08);
+            --shadow-md: 0 4px 12px rgba(56, 142, 60, 0.12);
+            --shadow-lg: 0 8px 24px rgba(56, 142, 60, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei UI", "微软雅黑", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .topbar {
+            height: 56px;
+            background: var(--topbar-bg);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+            position: relative;
+        }
+
+        .topbar-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: white;
+            margin-right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .topbar-btn {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .topbar-btn:hover {
+            background: var(--topbar-hover);
+        }
+
+        .topbar-btn.active {
+            background: var(--topbar-hover);
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 56px);
+        }
+
+        .sidebar {
+            width: 230px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 16px 14px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .search-box {
+            margin: 0 8px 8px;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            background: var(--bg-card);
+            color: var(--text);
+            outline: none;
+            width: calc(100% - 16px);
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+        }
+
+        .search-box::placeholder {
+            color: var(--text-muted);
+        }
+
+        .poem-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 8px;
+        }
+
+        .poem-list-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 3px;
+            transition: all 0.15s;
+            font-size: 13px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .poem-list-item:hover {
+            background: var(--lb-hover-bg);
+            color: var(--lb-hover-fg);
+        }
+
+        .poem-list-item.selected {
+            background: var(--lb-selected-bg);
+            color: var(--lb-selected-fg);
+        }
+
+        .sidebar-actions {
+            padding: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--topbar-hover);
+        }
+
+        .btn-secondary {
+            background: var(--btn-sec);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--btn-sec-hov);
+        }
+
+        .btn-edit {
+            background: var(--btn-edit);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: var(--btn-edit-hov);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #C62828;
+        }
+
+        .btn-success {
+            background: var(--correct);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--topbar-hover);
+        }
+
+        .btn-hint {
+            background: var(--hint);
+            color: white;
+        }
+
+        .btn-hint:hover {
+            background: #F57F17;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+            background: var(--bg);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .poem-title-display {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .poem-author-display {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--divider);
+            margin: 12px 0;
+        }
+
+        .poem-content-display {
+            font-size: 15px;
+            line-height: 2;
+            white-space: pre-wrap;
+            font-family: "Microsoft YaHei UI", "微软雅黑", serif;
+        }
+
+        .emotion-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+
+        .wrong-char-mark {
+            text-decoration: underline wavy var(--error) 1px;
+            color: var(--error);
+            font-weight: bold;
+        }
+
+        .notes-area {
+            font-size: 12px;
+            color: var(--text-sub);
+            line-height: 1.7;
+            padding: 10px 14px;
+            background: var(--accent-light);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .highlight-list {
+            font-size: 12px;
+            color: var(--text-sub);
+            line-height: 1.7;
+            padding: 10px 14px;
+            background: var(--accent-light);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .highlight-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin: 2px 4px 2px 0;
+            font-size: 14px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-left: 4px;
+            padding: 0 2px;
+        }
+
+        .remove-btn:hover {
+            color: var(--error);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.15);
+        }
+
+        .color-swatch.active {
+            border-color: var(--text);
+        }
+
+        .auto-annotate-word {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted var(--text-muted);
+        }
+
+        .auto-annotate-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1B5E20;
+            color: #FFFFFF;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: "Microsoft YaHei UI", "微软雅黑", sans-serif;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            line-height: 1.5;
+        }
+
+        .auto-annotate-word:hover .auto-annotate-tooltip {
+            display: block;
+        }
+
+        .recite-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: "Microsoft YaHei UI", "微软雅黑", sans-serif;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.9;
+        }
+
+        .recite-input:focus {
+            border-color: var(--accent);
+        }
+
+        .result-text {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 14px;
+            line-height: 1.9;
+            font-family: "Microsoft YaHei UI", "微软雅黑", monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+
+        .result-text .correct {
+            color: var(--correct);
+            font-weight: 600;
+        }
+
+        .result-text .error {
+            color: var(--error);
+            font-weight: 600;
+            text-decoration: underline wavy var(--error) 1px;
+        }
+
+        .result-text .miss {
+            color: var(--miss-fg);
+            background: var(--miss-bg);
+        }
+
+        .original-panel {
+            background: var(--accent-light);
+            border: 1px solid var(--accent-mid);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+        }
+
+        .import-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: "Microsoft YaHei UI", "微软雅黑", sans-serif;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.7;
+        }
+
+.record-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+    cursor: pointer;
+    overflow: visible;
+    position: relative;
+}
+
+.record-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.record-card::after {
+    content: '点击展开详情 ▼';
+    position: absolute;
+    bottom: 8px;
+    left: 14px;
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.record-card:hover::after {
+    opacity: 1;
+}
+
+.record-card.expanded::after {
+    opacity: 0 !important;
+}
+
+.record-header {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.record-main {
+    flex: 1;
+    min-width: 200px;
+}
+
+.record-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.record-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text);
+}
+
+.record-author {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.record-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.record-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.record-type {
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.record-accuracy {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 8px;
+}
+
+.record-delete-btn-inline {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.record-card:hover .record-delete-btn-inline {
+    opacity: 1;
+}
+
+.record-delete-btn-inline:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.record-detail {
+    display: none;
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    background: #FAFAFA;
+    font-size: 13px;
+    line-height: 1.8;
+    position: relative;
+}
+
+.record-detail.active {
+    display: block;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.record-detail-section {
+    margin-bottom: 12px;
+}
+
+.record-detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.record-detail-label {
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.record-detail-content {
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: inherit;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.record-wrong-chars {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+    background: #FFF5F5;
+    border: 1px solid var(--error);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--error);
+    font-weight: 500;
+}
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(27, 94, 32, 0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 0;
+            min-width: 480px;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #388E3C, #2E7D32);
+            color: white;
+            padding: 16px 22px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px 30px;
+        }
+
+        .modal-footer {
+            padding: 0 30px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: "Microsoft YaHei UI", "微软雅黑", sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .hint-text {
+            font-size: 13px;
+            color: var(--hint);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .random-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .random-option-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--accent);
+            background: white;
+            color: var(--accent);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .random-option-btn:hover {
+            background: var(--accent-light);
+        }
+
+        .random-option-btn.selected {
+            background: var(--accent);
+            color: white;
+        }
+
+        .random-question {
+            font-size: 18px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .random-answer-area {
+            margin-top: 16px;
+        }
+
+        .random-result {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .random-result.correct {
+            background: #E8F5E9;
+            border: 1px solid var(--correct);
+        }
+
+        .random-result.wrong {
+            background: #FFEBEE;
+            border: 1px solid var(--error);
+        }
+
+        .accuracy-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .accuracy-high {
+            background: #E8F5E9;
+            color: var(--correct);
+        }
+
+        .accuracy-mid {
+            background: #FFF9C4;
+            color: #F57F17;
+        }
+
+        .accuracy-low {
+            background: #FFEBEE;
+            color: var(--error);
+        }
+
+        .poem-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .error-chars-summary {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .error-chars-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .error-char-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            margin: 4px;
+            background: #FFF5F5;
+            border: 1px solid var(--error);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--error);
+        }
+
+        .error-char-count {
+            font-weight: bold;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-title">古诗背诵助手</div>
+        <div class="topbar-nav">
+            <button class="topbar-btn active" data-page="browse">古诗浏览</button>
+            <button class="topbar-btn" data-page="recite">默写练习</button>
+            <button class="topbar-btn" data-page="random">随机默写</button>
+            <button class="topbar-btn" data-page="import">导入管理</button>
+            <button class="topbar-btn" data-page="history">练习记录</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-header">诗词列表</div>
+            <input type="text" class="search-box" placeholder="搜索古诗名称或作者…" id="searchInput">
+            <div class="poem-list" id="poemList"></div>
+            <div class="sidebar-actions">
+                <button class="btn btn-edit" onclick="editSelectedPoem()" style="width:100%;">编辑选中</button>
+                <button class="btn btn-danger" onclick="deleteSelectedPoem()" style="width:100%;margin-top:6px;">删除选中</button>
+                
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- 浏览页面 -->
+            <div class="page active" id="browsePage">
+                <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+                    <button class="btn btn-primary" onclick="startRecite()">开始默写</button>
+                    <button class="btn" id="highlightBtn" onclick="toggleHighlightMode()" style="background:var(--accent);color:white;">划重点</button>
+                    <div class="color-picker" id="colorPicker" style="display:none;">
+                        <div class="color-swatch active" data-color="hl-yellow" style="background:var(--hl-yellow);" onclick="selectColor('hl-yellow', this)"></div>
+                        <div class="color-swatch" data-color="hl-green" style="background:var(--hl-green);" onclick="selectColor('hl-green', this)"></div>
+                        <div class="color-swatch" data-color="hl-pink" style="background:var(--hl-pink);" onclick="selectColor('hl-pink', this)"></div>
+                        <div class="color-swatch" data-color="hl-blue" style="background:var(--hl-blue);" onclick="selectColor('hl-blue', this)"></div>
+                    </div>
+                    <div style="flex:1;"></div>
+                    <button class="btn btn-edit" onclick="exportErrorChars()">导出易错字</button>
+                </div>
+                <div id="browseContent">
+                    <div class="card">
+                        <div class="poem-title-display" id="browseTitle">请从左侧选择一首古诗</div>
+                        <div class="poem-author-display" id="browseAuthor"></div>
+                        <div class="divider"></div>
+                        <div class="poem-content-display" id="poemContentDisplay">← 从左侧列表选择一首古诗即可浏览</div>
+                        <div class="notes-area" id="browseNotes" style="display:none;margin-top:10px;">
+                            <strong>注 释：</strong>
+                            <span id="browseNotesText"></span>
+                        </div>
+                        <div class="highlight-list" id="highlightList" style="display:none;margin-top:10px;">
+                            <strong style="color:var(--accent);font-size:12px;">重点记录：</strong>
+                            <div id="highlightItems"></div>
+                            <button class="btn btn-secondary" style="margin-top:8px;font-size:10px;padding:4px 10px;" onclick="clearHighlights()">清空</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteCurrentPoem()" style="margin-top:8px;">删除此诗</button>
+                </div>
+            </div>
+
+            <!-- 默写练习页面 -->
+            <div class="page" id="recitePage">
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--text);" id="reciteTitle">请从左侧选择一首古诗</div>
+                    <div style="font-size:12px;color:var(--text-sub);margin-top:2px;" id="reciteAuthor"></div>
+                </div>
+                <div style="height:1px;background:var(--divider);margin-bottom:12px;"></div>
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">在下方默写古诗文</div>
+                    <textarea class="recite-input" id="reciteInput" placeholder="在此输入你默写的古诗…"></textarea>
+                </div>
+                <div id="reciteActions" style="margin-top:8px;display:none;">
+                    <button class="btn btn-hint" onclick="showHint()">提示下句</button>
+                    <button class="btn btn-success" onclick="enterCheckMode()" style="margin-left:6px;">校对</button>
+                </div>
+                <div class="hint-text" id="hintLabel"></div>
+                <div id="reciteNotes" style="display:none;margin-bottom:12px;">
+                    <strong style="font-size:12px;color:var(--text-sub);">注释提示：</strong>
+                    <span id="reciteNotesText" style="font-size:12px;color:var(--text-muted);"></span>
+                </div>
+                <div id="reciteResult" style="display:none;">
+                    <div style="font-size:11px;font-weight:bold;color:var(--text-sub);margin-bottom:4px;" id="resultStat"></div>
+                    <div class="result-text" id="resultText"></div>
+                </div>
+                <div class="original-panel" id="originalPanel" style="display:none;">
+                    <strong>参考原文</strong>
+                    <div id="originalText"></div>
+                </div>
+                <div id="submitRow" style="display:none;margin-top:16px;text-align:right;">
+                    <span style="font-size:10px;color:var(--text-muted);margin-right:12px;">校对完成 — 点击提交以记录本次练习</span>
+                    <button class="btn btn-success" onclick="submitRecite()">提交记录</button>
+                </div>
+            </div>
+
+            <!-- 随机默写页面 -->
+            <div class="page" id="randomPage">
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--text);">随机默写</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">随机选择古诗进行默写练习</div>
+                </div>
+                <div style="height:1px;background:var(--divider);margin-bottom:16px;"></div>
+                
+                <div class="random-options">
+                    <button class="random-option-btn" onclick="startRandomRecite('fill')">填空默写</button>
+                    <button class="random-option-btn" onclick="startRandomRecite('prev')">补写前句</button>
+                    <button class="random-option-btn" onclick="startRandomRecite('next')">补写后句</button>
+                    <button class="random-option-btn" onclick="startRandomRecite('title')">作者篇名</button>
+                    <button class="random-option-btn" onclick="startRandomRecite('review')">错字复习</button>
+                </div>
+
+                <div id="randomQuestion" class="random-question" style="display:none;">
+                    <div id="randomQuestionText"></div>
+                </div>
+
+                <div class="random-answer-area" id="randomAnswerArea" style="display:none;">
+                    <textarea class="recite-input" id="randomInput" placeholder="在此输入你的答案…" style="min-height:100px;"></textarea>
+                    <div style="margin-top:12px;display:flex;gap:8px;">
+                        <button class="btn btn-primary" onclick="checkRandomAnswer()">检查答案</button>
+                        <button class="btn btn-secondary" onclick="nextRandomQuestion()">下一题</button>
+                    </div>
+                </div>
+
+                <div class="random-result" id="randomResult">
+                    <div id="randomResultText"></div>
+                </div>
+
+                <div id="randomStats" style="margin-top:16px;font-size:12px;color:var(--text-muted);">
+                    已练习：<span id="randomCount">0</span> 题 | 正确：<span id="randomCorrect">0</span> 题
+                </div>
+            </div>
+
+            <!-- 导入管理页面 -->
+            <div class="page" id="importPage">
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--text);">导入古诗</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">粘贴古诗内容，格式：标题|||作者|||诗文|||注释（注释可选）</div>
+                </div>
+                <textarea class="import-textarea" id="importText" placeholder="示例：
+静夜思|||李白|||床前明月光，疑是地上霜。举头望明月，低头思故乡。|||【注释】①霜：白霜。②举头：抬起头。
+
+春晓|||孟浩然|||春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。|||
+
+（支持批量导入，每首古诗一行）"></textarea>
+                <div style="margin-top:12px;display:flex;gap:8px;">
+                    <button class="btn btn-primary" onclick="importPoems()">导入</button>
+                    <div style="flex:1;"></div>
+                    <button class="btn btn-danger" onclick="clearAllPoems()">清空所有</button>
+                </div>
+            </div>
+
+            <!-- 练习记录页面 -->
+            <div class="page" id="historyPage">
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:20px;font-weight:bold;color:var(--text);">练习记录</div>
+                </div>
+                <div style="height:1px;background:var(--divider);margin-bottom:16px;"></div>
+                <div id="errorCharsSummary"></div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">编辑古诗</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" class="form-control" id="editTitle">
+                </div>
+                <div class="form-group">
+                    <label>作者</label>
+                    <input type="text" class="form-control" id="editAuthor">
+                </div>
+                <div class="form-group">
+                    <label>诗文</label>
+                    <textarea class="form-control" id="editContent"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>注释</label>
+                    <textarea class="form-control" id="editNotes" style="min-height:60px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveEdit()">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        var poems = [];
+        var currentPoemIndex = -1;
+        var filteredIndices = [];
+        var highlightMode = false;
+        var currentHighlightColor = 'hl-yellow';
+        
+        // 每首诗的高亮记录（按标题+作者存储）
+        var poemHighlights = {};
+        
+        var lastCheckResult = null;
+        var editingIndex = -1;
+        
+        // 随机默写相关变量
+        var randomMode = '';
+        var randomPoem = null;
+        var randomSentenceIndex = -1;
+        var randomCorrectCount = 0;
+        var randomTotalCount = 0;
+
+        // 自动注释数据库
+        var emotionDb = [
+            { keywords: ['月', '故乡', '思', '归', '家', '乡'], emotion: '思乡怀远', color: '#E8F5E9' },
+            { keywords: ['离别', '别', '送', '归', '去', '离'], emotion: '离别送别', color: '#FFF3E0' },
+            { keywords: ['国', '江山', '天下', '征', '战', '沙场', '军'], emotion: '爱国忧民', color: '#FFEBEE' },
+            { keywords: ['山', '水', '花', '鸟', '风', '雨', '雪', '云', '江', '湖'], emotion: '山水田园', color: '#E8F5E9' },
+            { keywords: ['边', '塞', '羌', '笛', '沙', '征', '戍'], emotion: '边塞征战', color: '#F3E5F5' },
+            { keywords: ['愁', '悲', '泪', '恨', '苦', '忧'], emotion: '悲愤愁苦', color: '#E0F7FA' },
+            { keywords: ['欢', '乐', '喜', '笑', '醉', '歌'], emotion: '欢愉旷达', color: '#FFFDE7' },
+            { keywords: ['春', '夏', '秋', '冬', '花', '叶'], emotion: '咏物感时', color: '#F1F8E9' },
+            { keywords: ['人生', '老', '死', '梦', '醉', '古', '今'], emotion: '人生感慨', color: '#EFEBE9' },
+            { keywords: ['爱', '情', '相思', '妾', '郎'], emotion: '爱情闺怨', color: '#FCE4EC' }
+        ];
+
+        var classicalWordsDb = {
+            '之': '代词/助词/动词，意为：他/它/的/去/往',
+            '乎': '语气助词/介词，意为：吗/呢/于/在',
+            '者': '助词，意为：…的人/…的事物/…的原因',
+            '也': '语气助词，表判断/肯定/感叹',
+            '而': '连词，意为：并且/但是/就/如果',
+            '其': '代词/副词，意为：他/它的/那/难道/大概',
+            '何': '疑问代词，意为：什么/为什么/哪里',
+            '乃': '副词，意为：于是/才/竟然/是',
+            '于': '介词，意为：在/到/对于/比',
+            '以': '介词/连词，意为：用/把/因为/来',
+            '为': '介词/动词，意为：被/做/作为/是',
+            '若': '连词/动词，意为：如果/像/你',
+            '虽': '连词，意为：虽然/即使',
+            '遂': '副词，意为：于是/就/终于',
+            '既': '副词，意为：已经/既然',
+            '莫': '代词/副词，意为：没有谁/不/不要',
+            '夫': '助词/代词，意为：那/这/句首发语词',
+            '焉': '代词/助词/兼词，意为：哪里/呢/于此',
+            '矣': '语气助词，意为：了/啦',
+            '哉': '语气助词，意为：吗/呢/啊（感叹）'
+        };
+
+        // 情感检测
+        function detectEmotion(poem) {
+            if (!poem || !poem.content) return null;
+            var content = poem.content + (poem.title || '') + (poem.notes || '');
+            var bestMatch = null;
+            var bestScore = 0;
+            for (var i = 0; i < emotionDb.length; i++) {
+                var entry = emotionDb[i];
+                var score = 0;
+                for (var j = 0; j < entry.keywords.length; j++) {
+                    var kw = entry.keywords[j];
+                    if (content.indexOf(kw) !== -1) score++;
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = entry;
+                }
+            }
+            return bestMatch;
+        }
+
+        // 获取自动注释
+        function getAutoAnnotations(poem) {
+            if (!poem || !poem.content) return [];
+            var content = poem.content;
+            var annotations = [];
+            var used = {};
+            for (var i = 0; i < content.length; i++) {
+                var ch = content[i];
+                if (used[ch]) continue;
+                if (classicalWordsDb[ch]) {
+                    var idx = content.indexOf(ch);
+                    var exists = false;
+                    for (var j = 0; j < annotations.length; j++) {
+                        if (annotations[j].char === ch && annotations[j].index === idx) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        annotations.push({ char: ch, index: idx, meaning: classicalWordsDb[ch] });
+                        used[ch] = true;
+                    }
+                }
+            }
+            annotations.sort(function(a, b) { return a.index - b.index; });
+            return annotations;
+        }
+
+        // 获取某首诗的所有错字
+        function getWrongCharsForPoem(title, author) {
+            var records = loadRecords();
+            var wrongChars = [];
+            var charCount = {};
+            
+            for (var i = 0; i < records.length; i++) {
+                if (records[i].title === title && records[i].author === author) {
+                    var chars = records[i].wrong_chars || [];
+                    for (var j = 0; j < chars.length; j++) {
+                        var ch = chars[j];
+                        if (!charCount[ch]) {
+                            charCount[ch] = 1;
+                            wrongChars.push(ch);
+                        }
+                    }
+                }
+            }
+            
+            return wrongChars;
+        }
+
+        // 获取诗歌的高亮键
+        function getPoemKey(poem) {
+            return poem.title + '|||' + poem.author;
+        }
+
+        // 获取某首诗的高亮记录
+        function getPoemHighlights(poem) {
+            var key = getPoemKey(poem);
+            if (!poemHighlights[key]) {
+                poemHighlights[key] = [];
+            }
+            return poemHighlights[key];
+        }
+
+        // 设置某首诗的高亮记录
+        function setPoemHighlights(poem, items) {
+            var key = getPoemKey(poem);
+            poemHighlights[key] = items;
+        }
+
+        // 渲染诗词和自动注释（带错字标记）
+        function renderPoemWithAnnotations(poem, containerId) {
+            var container = document.getElementById(containerId);
+            if (!container) return;
+            if (!poem) {
+                container.innerHTML = '← 从左侧列表选择一首古诗即可浏览';
+                return;
+            }
+            
+            // 获取该诗的错字
+            var wrongChars = getWrongCharsForPoem(poem.title, poem.author);
+            var wrongCharsSet = {};
+            for (var i = 0; i < wrongChars.length; i++) {
+                wrongCharsSet[wrongChars[i]] = true;
+            }
+            
+            // 获取该诗的高亮
+            var highlightItems = getPoemHighlights(poem);
+            var highlightChars = {};
+            for (var i = 0; i < highlightItems.length; i++) {
+                highlightChars[highlightItems[i].char] = highlightItems[i].color;
+            }
+            
+            var annotations = getAutoAnnotations(poem);
+            var html = '';
+            var lastIdx = 0;
+            annotations.sort(function(a, b) { return a.index - b.index; });
+            
+            for (var i = 0; i < annotations.length; i++) {
+                var ann = annotations[i];
+                if (ann.index >= lastIdx) {
+                    // 处理普通文字，检查是否有错字或高亮
+                    var textSegment = poem.content.substring(lastIdx, ann.index);
+                    html += processTextSegment(textSegment, wrongCharsSet, highlightChars);
+                    
+                    // 处理注释词
+                    html += '<span class="auto-annotate-word">' + escapeHtml(ann.char) +
+                        '<span class="auto-annotate-tooltip">' + escapeHtml(ann.meaning) + '</span></span>';
+                    lastIdx = ann.index + ann.char.length;
+                }
+            }
+            
+            // 处理剩余文字
+            var remainingText = poem.content.substring(lastIdx);
+            html += processTextSegment(remainingText, wrongCharsSet, highlightChars);
+            
+            container.innerHTML = html;
+            
+            // 如果开启了划重点模式，让文字可点击
+            if (highlightMode) {
+                makeTextHighlightable(container);
+            }
+        }
+
+        // 处理文字段落（应用错字标记和高亮）
+        function processTextSegment(text, wrongCharsSet, highlightChars) {
+            var result = '';
+            for (var i = 0; i < text.length; i++) {
+                var ch = text[i];
+                var escaped = escapeHtml(ch);
+                
+                if (highlightChars[ch]) {
+                    // 高亮显示
+                    var colorMap = {
+                        'hl-yellow': 'var(--hl-yellow)',
+                        'hl-green': 'var(--hl-green)',
+                        'hl-pink': 'var(--hl-pink)',
+                        'hl-blue': 'var(--hl-blue)'
+                    };
+                    result += '<span style="background:' + colorMap[highlightChars[ch]] + ';">' + escaped + '</span>';
+                } else if (wrongCharsSet[ch]) {
+                    // 错字标记
+                    result += '<span class="wrong-char-mark">' + escaped + '</span>';
+                } else {
+                    result += escaped;
+                }
+            }
+            return result;
+        }
+
+        // 使文字可点击高亮
+        function makeTextHighlightable(container) {
+            var text = container.innerHTML;
+            var newHtml = '';
+            var i = 0;
+            while (i < text.length) {
+                if (text[i] === '<') {
+                    var tagEnd = text.indexOf('>', i);
+                    if (tagEnd === -1) tagEnd = i;
+                    newHtml += text.substring(i, tagEnd + 1);
+                    i = tagEnd + 1;
+                } else if (text[i] === '&') {
+                    var entityEnd = text.indexOf(';', i);
+                    if (entityEnd === -1) entityEnd = i;
+                    newHtml += text.substring(i, entityEnd + 1);
+                    i = entityEnd + 1;
+                } else {
+                    var ch = text[i];
+                    newHtml += '<span class="highlight-span" style="background:transparent;" onclick="toggleHighlightChar(this)">' + escapeHtml(ch) + '</span>';
+                    i++;
+                }
+            }
+            container.innerHTML = newHtml;
+        }
+
+        // 切换高亮字符
+        function toggleHighlightChar(span) {
+            if (!highlightMode) return;
+            
+            var ch = span.textContent;
+            var colorMap = {
+                'hl-yellow': 'var(--hl-yellow)',
+                'hl-green': 'var(--hl-green)',
+                'hl-pink': 'var(--hl-pink)',
+                'hl-blue': 'var(--hl-blue)'
+            };
+            
+            var currentBg = span.style.background;
+            if (currentBg === 'transparent' || currentBg === '') {
+                span.style.background = colorMap[currentHighlightColor];
+                addHighlightItem(ch, currentHighlightColor);
+            } else {
+                span.style.background = 'transparent';
+                removeHighlightItem(ch);
+            }
+            
+            // 更新显示
+            updateHighlightList();
+        }
+
+        function addHighlightItem(ch, color) {
+            if (currentPoemIndex < 0) return;
+            var poem = poems[currentPoemIndex];
+            var items = getPoemHighlights(poem);
+            
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].char === ch && items[i].color === color) {
+                    return;
+                }
+            }
+            items.push({ char: ch, color: color });
+            updateHighlightList();
+        }
+
+        function removeHighlightItem(ch) {
+            if (currentPoemIndex < 0) return;
+            var poem = poems[currentPoemIndex];
+            var items = getPoemHighlights(poem);
+            
+            setPoemHighlights(poem, items.filter(function(item) { return item.char !== ch; }));
+            updateHighlightList();
+            // 重新渲染诗歌内容，清除视觉高亮
+            renderPoemWithAnnotations(poem, 'poemContentDisplay');
+        }
+
+        function updateHighlightList() {
+            if (currentPoemIndex < 0) return;
+            var poem = poems[currentPoemIndex];
+            var items = getPoemHighlights(poem);
+            
+            var list = document.getElementById('highlightItems');
+            var container = document.getElementById('highlightList');
+            
+            if (items.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                html += '<div class="highlight-item" style="background:' + getColorValue(item.color) + '20;">' +
+                    '<span style="font-size:16px;">' + escapeHtml(item.char) + '</span>' +
+                    '<button class="remove-btn" onclick="removeHighlightItem(\'' + escapeJs(item.char) + '\')">✕</button>' +
+                    '</div>';
+            }
+            list.innerHTML = html;
+        }
+
+        function getColorValue(colorName) {
+            var map = {
+                'hl-yellow': '#FFF176',
+                'hl-green': '#A8F5C0',
+                'hl-pink': '#FFB3D1',
+                'hl-blue': '#90CAF9'
+            };
+            return map[colorName] || '#FFF176';
+        }
+
+        function clearHighlights() {
+            if (currentPoemIndex < 0) return;
+            var poem = poems[currentPoemIndex];
+            setPoemHighlights(poem, []);
+            updateHighlightList();
+            loadPoemToBrowse();
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeJs(text) {
+            return text.replace(/'/g, "\\'");
+        }
+
+        // 初始化
+        function init() {
+            loadPoems();
+            renderPoemList();
+            setupEventListeners();
+            if (poems.length > 0) {
+                selectPoem(0);
+            }
+        }
+
+        function loadPoems() {
+            var saved = localStorage.getItem('poetry_poems');
+            if (saved) {
+                try {
+                    poems = JSON.parse(saved);
+                } catch (e) {
+                    poems = getDefaultPoems();
+                }
+            } else {
+                poems = getDefaultPoems();
+            }
+            filteredIndices = [];
+            for (var i = 0; i < poems.length; i++) {
+                filteredIndices.push(i);
+            }
+        }
+
+        function savePoems() {
+            localStorage.setItem('poetry_poems', JSON.stringify(poems));
+        }
+
+        function getDefaultPoems() {
+            return [
+                { title: '静夜思', author: '李白', content: '床前明月光，疑是地上霜。\n举头望明月，低头思故乡。', notes: '【注释】①霜：白霜。②举头：抬起头。' },
+                { title: '春晓', author: '孟浩然', content: '春眠不觉晓，处处闻啼鸟。\n夜来风雨声，花落知多少。', notes: '【注释】①晓：天亮。②闻：听到。' }
+            ];
+        }
+
+        function loadRecords() {
+            var saved = localStorage.getItem('poetry_records');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem('poetry_records', JSON.stringify(records));
+        }
+
+        function setupEventListeners() {
+            var buttons = document.querySelectorAll('.topbar-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                (function(btn) {
+                    btn.addEventListener('click', function() {
+                        switchPage(btn.dataset.page);
+                    });
+                })(buttons[i]);
+            }
+            document.getElementById('searchInput').addEventListener('input', onSearchChange);
+        }
+
+        // 页面切换
+        function switchPage(pageName) {
+            var buttons = document.querySelectorAll('.topbar-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                var btn = buttons[i];
+                btn.classList.toggle('active', btn.dataset.page === pageName);
+            }
+            var pages = document.querySelectorAll('.page');
+            for (var j = 0; j < pages.length; j++) {
+                var page = pages[j];
+                page.classList.toggle('active', page.id === pageName + 'Page');
+            }
+            
+            if (pageName === 'history') {
+                refreshHistoryPage();
+            }
+            
+            if (pageName === 'browse' && currentPoemIndex >= 0) {
+                loadPoemToBrowse();
+            }
+        }
+
+        // 诗词列表
+        function renderPoemList() {
+            var listEl = document.getElementById('poemList');
+            listEl.innerHTML = '';
+            var records = loadRecords();
+
+            for (var idx = 0; idx < filteredIndices.length; idx++) {
+                var realIdx = filteredIndices[idx];
+                var poem = poems[realIdx];
+                var item = document.createElement('div');
+                item.className = 'poem-list-item';
+                if (realIdx === currentPoemIndex) {
+                    item.classList.add('selected');
+                }
+
+                var latestRecord = null;
+                for (var i = 0; i < records.length; i++) {
+                    if (records[i].title === poem.title && records[i].author === poem.author) {
+                        latestRecord = records[i];
+                        break;
+                    }
+                }
+
+                var metaHtml = '';
+                if (latestRecord) {
+                    var accuracy = latestRecord.accuracy || 0;
+                    var dateStr = (latestRecord.time || '').substring(5, 10);
+                    metaHtml = '<div class="poem-meta">' + accuracy + '% · ' + dateStr + '</div>';
+                }
+
+                // 标题和作者在同一行，作者小字显示
+                item.innerHTML = '<div style="display:flex;align-items:baseline;gap:8px;">' +
+                    '<span style="font-weight:bold;">' + escapeHtml(poem.title) + '</span>' +
+                    '<span style="font-size:11px;color:var(--text-muted);">── ' + escapeHtml(poem.author) + '</span>' +
+                    '</div>' + metaHtml;
+                
+                (function(idx) {
+                    item.addEventListener('click', function() {
+                        selectPoem(idx);
+                    });
+                })(realIdx);
+                
+                listEl.appendChild(item);
+            }
+        }
+
+        function onSearchChange() {
+            var query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!query) {
+                filteredIndices = [];
+                for (var i = 0; i < poems.length; i++) {
+                    filteredIndices.push(i);
+                }
+            } else {
+                filteredIndices = [];
+                for (var i = 0; i < poems.length; i++) {
+                    var p = poems[i];
+                    if (p.title.toLowerCase().indexOf(query) !== -1 || p.author.toLowerCase().indexOf(query) !== -1) {
+                        filteredIndices.push(i);
+                    }
+                }
+            }
+            renderPoemList();
+        }
+
+        function selectPoem(index) {
+            currentPoemIndex = index;
+            renderPoemList();
+            loadPoemToBrowse();
+            loadPoemToRecite();
+        }
+
+        // 浏览功能
+        function loadPoemToBrowse() {
+            if (currentPoemIndex < 0 || currentPoemIndex >= poems.length) {
+                document.getElementById('browseTitle').textContent = '请从左侧选择一首古诗';
+                document.getElementById('browseAuthor').textContent = '';
+                document.getElementById('poemContentDisplay').textContent = '← 从左侧列表选择一首古诗即可浏览';
+                document.getElementById('browseNotes').style.display = 'none';
+                document.getElementById('highlightList').style.display = 'none';
+                return;
+            }
+
+            var poem = poems[currentPoemIndex];
+            document.getElementById('browseTitle').textContent = poem.title;
+
+            var emotion = detectEmotion(poem);
+            var authorHtml = '── ' + poem.author;
+            if (emotion) {
+                authorHtml += ' <span class="emotion-tag" style="background:' + emotion.color + ';">' + emotion.emotion + '</span>';
+            }
+            document.getElementById('browseAuthor').innerHTML = authorHtml;
+
+            renderPoemWithAnnotations(poem, 'poemContentDisplay');
+
+            if (poem.notes) {
+                document.getElementById('browseNotes').style.display = 'block';
+                document.getElementById('browseNotesText').textContent = poem.notes;
+            } else {
+                document.getElementById('browseNotes').style.display = 'none';
+            }
+            
+            // 更新高亮列表
+            updateHighlightList();
+        }
+
+        // 划重点功能
+        function toggleHighlightMode() {
+            highlightMode = !highlightMode;
+            var btn = document.getElementById('highlightBtn');
+            var picker = document.getElementById('colorPicker');
+
+            if (highlightMode) {
+                btn.style.background = 'var(--btn-sec)';
+                picker.style.display = 'flex';
+                if (currentPoemIndex >= 0) {
+                    renderPoemWithAnnotations(poems[currentPoemIndex], 'poemContentDisplay');
+                }
+            } else {
+                btn.style.background = 'var(--accent)';
+                picker.style.display = 'none';
+                if (currentPoemIndex >= 0) {
+                    renderPoemWithAnnotations(poems[currentPoemIndex], 'poemContentDisplay');
+                }
+            }
+        }
+
+        function selectColor(color, el) {
+            currentHighlightColor = color;
+            var swatches = document.querySelectorAll('.color-swatch');
+            for (var i = 0; i < swatches.length; i++) {
+                swatches[i].classList.remove('active');
+            }
+            el.classList.add('active');
+        }
+
+        // 默写练习
+        function startRecite() {
+            if (currentPoemIndex < 0) {
+                alert('请先从左侧选择一首古诗。');
+                return;
+            }
+            switchPage('recite');
+        }
+
+        function loadPoemToRecite() {
+            if (currentPoemIndex < 0) {
+                document.getElementById('reciteTitle').textContent = '请从左侧选择一首古诗';
+                document.getElementById('reciteAuthor').textContent = '';
+                document.getElementById('reciteInput').value = '';
+                document.getElementById('hintLabel').textContent = '';
+                document.getElementById('reciteResult').style.display = 'none';
+                document.getElementById('originalPanel').style.display = 'none';
+                document.getElementById('reciteNotes').style.display = 'none';
+                document.getElementById('submitRow').style.display = 'none';
+                document.getElementById('reciteActions').style.display = 'none';
+                lastCheckResult = null;
+                return;
+            }
+
+            var poem = poems[currentPoemIndex];
+            document.getElementById('reciteTitle').textContent = poem.title;
+
+            var emotion = detectEmotion(poem);
+            var authorHtml = '── ' + poem.author;
+            if (emotion) {
+                authorHtml += ' <span class="emotion-tag" style="background:' + emotion.color + ';">' + emotion.emotion + '</span>';
+            }
+            document.getElementById('reciteAuthor').innerHTML = authorHtml;
+
+            document.getElementById('reciteInput').value = '';
+            document.getElementById('hintLabel').textContent = '';
+            document.getElementById('reciteResult').style.display = 'none';
+            document.getElementById('originalPanel').style.display = 'none';
+            document.getElementById('submitRow').style.display = 'none';
+            document.getElementById('reciteActions').style.display = 'block';
+            lastCheckResult = null;
+
+            if (poem.notes) {
+                document.getElementById('reciteNotes').style.display = 'block';
+                document.getElementById('reciteNotesText').textContent = poem.notes;
+            } else {
+                document.getElementById('reciteNotes').style.display = 'none';
+            }
+        }
+
+        function showHint() {
+            if (currentPoemIndex < 0) {
+                alert('请先从左侧选择一首古诗。');
+                return;
+            }
+
+            var poem = poems[currentPoemIndex];
+            var sentences = poem.content.split(/[，。？！；]/).filter(function(s) { return s.trim(); });
+            if (!sentences.length) return;
+
+            var userInput = document.getElementById('reciteInput').value.trim();
+            var userChars = userInput.replace(/[^\u4e00-\u9fff]/g, '');
+
+            var cumulative = 0;
+            var hintSentence = null;
+
+            for (var i = 0; i < sentences.length; i++) {
+                var sentClean = sentences[i].replace(/[^\u4e00-\u9fff]/g, '');
+                var nextPos = cumulative + sentClean.length;
+
+                if (userChars.length < nextPos) {
+                    if (userChars.length > cumulative && i + 1 < sentences.length) {
+                        hintSentence = sentences[i + 1];
+                    } else if (userChars.length <= cumulative) {
+                        hintSentence = sentences[i];
+                    } else {
+                        hintSentence = i + 1 < sentences.length ? sentences[i + 1] : null;
+                    }
+                    break;
+                }
+                cumulative = nextPos;
+            }
+
+            if (hintSentence) {
+                document.getElementById('hintLabel').textContent = '下一句：' + hintSentence;
+            } else {
+                document.getElementById('hintLabel').textContent = '已写完所有句子，点击「校对」查看结果。';
+            }
+        }
+
+        function enterCheckMode() {
+            if (currentPoemIndex < 0) {
+                alert('请先从左侧选择一首古诗。');
+                return;
+            }
+
+            var poem = poems[currentPoemIndex];
+            var userRaw = document.getElementById('reciteInput').value.trim();
+            // 按行拆分用户输入为句子（支持多行输入和单行连续输入两种模式）
+            var userLines = userRaw.split(/\n/).map(function(s) { return s.trim().replace(/[^\u4e00-\u9fff]/g, ''); }).filter(function(s) { return s.length > 0; });
+
+            // 正确答案按标点拆成句子，并去掉标点
+            var correctSentences = poem.content.split(/[，。？！；]/).filter(function(s) { return s.trim(); });
+            var correctClean = correctSentences.map(function(s) { return s.replace(/[^\u4e00-\u9fff]/g, ''); });
+
+            var answer = poem.content.replace(/[^\u4e00-\u9fff]/g, '');
+            var userChars = userRaw.replace(/[^\u4e00-\u9fff]/g, '');
+
+            // 如果用户输入按行拆分后句子数与正确答案一致，逐句校对
+            // 否则使用全局DP对齐
+            var useSentenceMode = (userLines.length === correctClean.length);
+            var sentenceResults = []; // 每句的对齐结果
+            var allResults = [];
+
+            if (useSentenceMode) {
+                // 逐句DP对齐
+                for (var s = 0; s < correctClean.length; s++) {
+                    var u = userLines[s] || '';
+                    var c = correctClean[s] || '';
+                    var sentResult = alignTwoStrings(u, c);
+                    sentenceResults.push(sentResult);
+                    allResults = allResults.concat(sentResult);
+                }
+            } else {
+                // 全局DP对齐
+                allResults = alignTwoStrings(userChars, answer);
+            }
+
+            // 统计
+            var correctCount = 0, wrongCount = 0, missCount = 0;
+            for (var k = 0; k < allResults.length; k++) {
+                if (allResults[k].status === 'correct') correctCount++;
+                else if (allResults[k].status === 'wrong') wrongCount++;
+                else if (allResults[k].status === 'miss') missCount++;
+            }
+
+            var total = answer.length;
+            var accuracy = total > 0 ? Math.round(correctCount / total * 100) : 0;
+
+            // 构建展示HTML——逐句展示，句子之间用空格隔开
+            var resultHtml = '';
+            if (useSentenceMode) {
+                for (var s = 0; s < sentenceResults.length; s++) {
+                    if (s > 0) resultHtml += ' ';
+                    var sr = sentenceResults[s];
+                    for (var k = 0; k < sr.length; k++) {
+                        var rc = sr[k];
+                        if (rc.status === 'correct') {
+                            resultHtml += '<span class="correct">' + escapeHtml(rc.ch) + '</span>';
+                        } else if (rc.status === 'miss') {
+                            resultHtml += '<span class="miss">' + escapeHtml(rc.ch) + '</span>';
+                        } else {
+                            resultHtml += '<span class="error">' + escapeHtml(rc.ch) + '</span>';
+                        }
+                    }
+                }
+            } else {
+                for (var k = 0; k < allResults.length; k++) {
+                    var rc = allResults[k];
+                    if (rc.status === 'correct') {
+                        resultHtml += '<span class="correct">' + escapeHtml(rc.ch) + '</span>';
+                    } else if (rc.status === 'miss') {
+                        resultHtml += '<span class="miss">' + escapeHtml(rc.ch) + '</span>';
+                    } else {
+                        resultHtml += '<span class="error">' + escapeHtml(rc.ch) + '</span>';
+                    }
+                }
+            }
+
+            document.getElementById('resultStat').textContent = '正确：' + correctCount + ' | 错误：' + wrongCount + ' | 漏字：' + missCount + ' | 准确率：' + accuracy + '%';
+            document.getElementById('resultText').innerHTML = resultHtml;
+            document.getElementById('reciteResult').style.display = 'block';
+            document.getElementById('originalText').textContent = poem.content;
+            document.getElementById('originalPanel').style.display = 'block';
+            document.getElementById('submitRow').style.display = 'block';
+
+            lastCheckResult = {
+                title: poem.title,
+                author: poem.author,
+                accuracy: accuracy,
+                char_status: [],
+                answer: answer,
+                wrong_chars: allResults.filter(function(r) { return r.status !== 'correct'; }).map(function(r) { return r.ch; }),
+                user_input: userRaw
+            };
+        }
+
+        // DP对齐两个字符串，返回 [{ch, status}] 数组
+        function alignTwoStrings(u, c) {
+            var n = u.length, m = c.length;
+            if (n === 0 && m === 0) return [];
+            if (n === 0) {
+                var res = [];
+                for (var j = 0; j < m; j++) res.push({ ch: c[j], status: 'miss' });
+                return res;
+            }
+            if (m === 0) {
+                // 用户多写了字——这些字不纳入答案展示，但记录下来
+                var res = [];
+                for (var i = 0; i < n; i++) res.push({ ch: u[i], status: 'wrong' });
+                return res;
+            }
+
+            // DP表
+            var dp = [];
+            var back = []; // 'd'=对角, 'u'=上, 'l'=左
+            for (var i = 0; i <= n; i++) {
+                dp[i] = [];
+                back[i] = [];
+                for (var j = 0; j <= m; j++) {
+                    dp[i][j] = 0;
+                    back[i][j] = '';
+                }
+            }
+            for (var i = 1; i <= n; i++) { dp[i][0] = i; back[i][0] = 'u'; }
+            for (var j = 1; j <= m; j++) { dp[0][j] = j; back[0][j] = 'l'; }
+
+            for (var i = 1; i <= n; i++) {
+                for (var j = 1; j <= m; j++) {
+                    if (u[i-1] === c[j-1]) {
+                        dp[i][j] = dp[i-1][j-1];
+                        back[i][j] = 'd';
+                    } else {
+                        var sub = dp[i-1][j-1] + 1;
+                        var del = dp[i-1][j] + 1;
+                        var ins = dp[i][j-1] + 1;
+                        if (sub <= del && sub <= ins) {
+                            dp[i][j] = sub; back[i][j] = 'd';
+                        } else if (del <= ins) {
+                            dp[i][j] = del; back[i][j] = 'u';
+                        } else {
+                            dp[i][j] = ins; back[i][j] = 'l';
+                        }
+                    }
+                }
+            }
+
+            // 回溯
+            var result = [];
+            var i = n, j = m;
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && back[i][j] === 'd') {
+                    if (u[i-1] === c[j-1]) {
+                        result.unshift({ ch: u[i-1], status: 'correct' });
+                    } else {
+                        result.unshift({ ch: u[i-1], status: 'wrong' });
+                    }
+                    i--; j--;
+                } else if (j > 0 && back[i][j] === 'l') {
+                    result.unshift({ ch: c[j-1], status: 'miss' });
+                    j--;
+                } else if (i > 0 && back[i][j] === 'u') {
+                    // 用户多写的字，记录为wrong
+                    result.unshift({ ch: u[i-1], status: 'wrong' });
+                    i--;
+                } else {
+                    // fallback
+                    if (i > 0 && j > 0) {
+                        result.unshift({ ch: u[i-1], status: 'wrong' });
+                        i--; j--;
+                    } else if (j > 0) {
+                        result.unshift({ ch: c[j-1], status: 'miss' });
+                        j--;
+                    } else if (i > 0) {
+                        result.unshift({ ch: u[i-1], status: 'wrong' });
+                        i--;
+                    } else { break; }
+                }
+            }
+            return result;
+        }
+
+        function submitRecite() {
+            if (!lastCheckResult) return;
+
+            var records = loadRecords();
+            records.push({
+                title: lastCheckResult.title,
+                author: lastCheckResult.author,
+                accuracy: lastCheckResult.accuracy,
+                time: new Date().toISOString(),
+                wrong_chars: lastCheckResult.wrong_chars,
+                type: 'recite',
+                user_input: lastCheckResult.user_input
+            });
+            saveRecords(records);
+
+            alert('记录已保存！');
+            document.getElementById('submitRow').style.display = 'none';
+            renderPoemList();
+        }
+
+        function exportErrorChars() {
+            var records = loadRecords();
+            if (!records.length) {
+                alert('暂无练习记录。');
+                return;
+            }
+
+            var charCount = {};
+            for (var i = 0; i < records.length; i++) {
+                var rec = records[i];
+                var wrongChars = rec.wrong_chars || [];
+                for (var j = 0; j < wrongChars.length; j++) {
+                    var ch = wrongChars[j];
+                    charCount[ch] = (charCount[ch] || 0) + 1;
+                }
+            }
+
+            var sorted = [];
+            for (var ch in charCount) {
+                sorted.push([ch, charCount[ch]]);
+            }
+            sorted.sort(function(a, b) { return b[1] - a[1]; });
+
+            var text = '古诗背诵易错字统计\n';
+            text += '生成时间：' + new Date().toLocaleString() + '\n';
+            text += '========================\n\n';
+
+            for (var i = 0; i < sorted.length; i++) {
+                text += sorted[i][0] + '：' + sorted[i][1] + ' 次\n';
+            }
+
+            var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '易错字统计.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 删除功能
+        function deleteCurrentPoem() {
+            if (currentPoemIndex < 0) return;
+            var poem = poems[currentPoemIndex];
+            if (confirm('确定要删除《' + poem.title + '》吗？')) {
+                poems.splice(currentPoemIndex, 1);
+                savePoems();
+                filteredIndices = [];
+                for (var i = 0; i < poems.length; i++) {
+                    filteredIndices.push(i);
+                }
+                if (currentPoemIndex >= poems.length) {
+                    currentPoemIndex = poems.length - 1;
+                }
+                selectPoem(currentPoemIndex >= 0 ? currentPoemIndex : -1);
+            }
+        }
+
+        function editSelectedPoem() {
+            if (currentPoemIndex < 0) {
+                alert('请先选择一首古诗。');
+                return;
+            }
+            editingIndex = currentPoemIndex;
+            var poem = poems[editingIndex];
+            document.getElementById('editTitle').value = poem.title;
+            document.getElementById('editAuthor').value = poem.author;
+            document.getElementById('editContent').value = poem.content;
+            document.getElementById('editNotes').value = poem.notes || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingIndex = -1;
+        }
+
+        function saveEdit() {
+            if (editingIndex < 0) return;
+            poems[editingIndex].title = document.getElementById('editTitle').value.trim();
+            poems[editingIndex].author = document.getElementById('editAuthor').value.trim();
+            poems[editingIndex].content = document.getElementById('editContent').value.trim();
+            poems[editingIndex].notes = document.getElementById('editNotes').value.trim();
+            savePoems();
+            closeEditModal();
+            selectPoem(editingIndex);
+            alert('保存成功！');
+        }
+
+        function deleteSelectedPoem() {
+            deleteCurrentPoem();
+        }
+
+        // 导入功能
+        function importPoems() {
+            var text = document.getElementById('importText').value.trim();
+            if (!text) {
+                alert('请输入要导入的古诗内容。');
+                return;
+            }
+
+            var lines = text.split('\n').filter(function(l) { return l.trim(); });
+            var count = 0;
+
+            for (var idx = 0; idx < lines.length; idx++) {
+                var line = lines[idx];
+                var parts = line.split('|||');
+                if (parts.length < 3) continue;
+
+                var title = parts[0].trim();
+                var author = parts[1].trim();
+                var content = parts[2].trim();
+                var notes = parts[3] ? parts[3].trim() : '';
+
+                if (!title || !content) continue;
+
+                poems.push({ title: title, author: author, content: content, notes: notes });
+                count++;
+            }
+
+            if (count > 0) {
+                savePoems();
+                filteredIndices = [];
+                for (var i = 0; i < poems.length; i++) {
+                    filteredIndices.push(i);
+                }
+                renderPoemList();
+                alert('成功导入 ' + count + ' 首古诗！');
+                document.getElementById('importText').value = '';
+            } else {
+                alert('未找到有效的古诗数据，请检查格式。');
+            }
+        }
+
+        function clearAllPoems() {
+            if (!poems.length) {
+                alert('暂无古诗可清空。');
+                return;
+            }
+            if (confirm('确认清空所有古诗？')) {
+                poems = [];
+                savePoems();
+                filteredIndices = [];
+                renderPoemList();
+                selectPoem(-1);
+                alert('已清空所有古诗。');
+            }
+        }
+
+        // 历史记录
+        function refreshHistoryPage() {
+            // 先显示错字统计
+            refreshErrorCharsSummary();
+            
+            var container = document.getElementById('historyList');
+            container.innerHTML = '';
+
+            var records = loadRecords();
+            if (!records.length) {
+                container.innerHTML = '<div class="empty-state">暂无练习记录，快去默写吧！</div>';
+                return;
+            }
+
+            for (var i = records.length - 1; i >= 0; i--) {
+                var rec = records[i];
+                var card = document.createElement('div');
+                card.className = 'record-card';
+                
+                var accuracyClass = 'accuracy-high';
+                if (rec.accuracy < 60) accuracyClass = 'accuracy-low';
+                else if (rec.accuracy < 85) accuracyClass = 'accuracy-mid';
+                
+                var timeStr = (rec.time || '').replace('T', ' ').substring(0, 19);
+                
+                var typeLabel = '';
+                if (rec.type === 'random' && rec.mode) {
+                    typeLabel = '<span class="record-type">随机·' + getModeName(rec.mode) + '</span>';
+                } else if (rec.type === 'practice') {
+                    typeLabel = '<span class="record-type">练习</span>';
+                }
+                
+                card.innerHTML = '<div class="record-header">' +
+                    '<div class="record-main">' +
+                        '<div class="record-title-row">' +
+                            '<div class="record-title">' + escapeHtml(rec.title) + '</div>' +
+                            '<div class="record-author">── ' + escapeHtml(rec.author) + '</div>' +
+                        '</div>' +
+                        '<div class="record-meta">' +
+                            '<div class="record-time">' + timeStr + '</div>' +
+                            typeLabel +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="record-accuracy">' +
+                        '<span class="accuracy-badge ' + accuracyClass + '">' + rec.accuracy + '%</span>' +
+                        '<button class="record-delete-btn-inline" onclick="event.stopPropagation();deleteRecord(' + i + ');">删除</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="record-detail" id="detail-' + i + '">' +
+                    (rec.user_input ? '<div class="record-detail-section">' +
+                        '<div class="record-detail-label">你的输入</div>' +
+                        '<div class="record-detail-content">' + escapeHtml(rec.user_input) + '</div>' +
+                    '</div>' : '') +
+                    (rec.wrong_chars && rec.wrong_chars.length ? '<div class="record-detail-section">' +
+                        '<div class="record-detail-label">错字</div>' +
+                        '<div>' + rec.wrong_chars.map(function(ch) {
+                            return '<span class="record-wrong-chars">' + escapeHtml(ch) + '</span>';
+                        }).join('') + '</div>' +
+                    '</div>' : '') +
+                '</div>';
+
+                // 点击卡片查看详情
+                (function(idx) {
+                    card.onclick = function() {
+                        var detail = document.getElementById('detail-' + idx);
+                        detail.classList.toggle('active');
+                        // 切换展开状态，用于隐藏"点击展开详情"提示
+                        card.classList.toggle('expanded');
+                    };
+                })(i);
+                
+                container.appendChild(card);
+            }
+        }
+
+        // 刷新错字统计区域
+        function refreshErrorCharsSummary() {
+            var container = document.getElementById('errorCharsSummary');
+            var records = loadRecords();
+            
+            if (!records.length) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var charCount = {};
+            for (var i = 0; i < records.length; i++) {
+                var rec = records[i];
+                var wrongChars = rec.wrong_chars || [];
+                for (var j = 0; j < wrongChars.length; j++) {
+                    var ch = wrongChars[j];
+                    charCount[ch] = (charCount[ch] || 0) + 1;
+                }
+            }
+
+            var sorted = [];
+            for (var ch in charCount) {
+                sorted.push([ch, charCount[ch]]);
+            }
+            sorted.sort(function(a, b) { return b[1] - a[1]; });
+            
+            // 只显示前10个
+            var topChars = sorted.slice(0, 10);
+            
+            if (topChars.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var html = '<div class="error-chars-summary">' +
+                '<div class="error-chars-title">易错字统计（TOP 10）</</div>';
+            
+            for (var i = 0; i < topChars.length; i++) {
+                html += '<div class="error-char-item">' +
+                    escapeHtml(topChars[i][0]) +
+                    '<span class="error-char-count">×' + topChars[i][1] + '</span>' +
+                    '</div>';
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function deleteRecord(index) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            
+            var records = loadRecords();
+            records.splice(index, 1);
+            saveRecords(records);
+            refreshHistoryPage();
+        }
+
+        function getModeName(mode) {
+            var names = {
+                'fill': '填空默写',
+                'prev': '补写前句',
+                'next': '补写后句',
+                'title': '作者篇名',
+                'review': '错字复习'
+            };
+            return names[mode] || '';
+        }
+
+        // 随机默写功能
+        function resetRandomPage() {
+            randomMode = '';
+            randomPoem = null;
+            randomSentenceIndex = -1;
+            document.getElementById('randomQuestion').style.display = 'none';
+            document.getElementById('randomAnswerArea').style.display = 'none';
+            document.getElementById('randomResult').style.display = 'none';
+            var buttons = document.querySelectorAll('.random-option-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('selected');
+            }
+        }
+
+        function startRandomRecite(mode) {
+            if (poems.length === 0) {
+                alert('请先导入古诗！');
+                return;
+            }
+
+            randomMode = mode;
+            var buttons = document.querySelectorAll('.random-option-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                var btn = buttons[i];
+                btn.classList.toggle('selected', btn.textContent.indexOf(getModeName(mode)) !== -1);
+            }
+
+            if (mode === 'review') {
+                startReviewMode();
+            } else {
+                generateRandomQuestion();
+            }
+        }
+
+        function generateRandomQuestion() {
+            var randomIndex = Math.floor(Math.random() * poems.length);
+            randomPoem = poems[randomIndex];
+            
+            var sentences = randomPoem.content.split(/[，；]/).filter(function(s) { return s.trim(); });
+            if (sentences.length === 0) {
+                alert('该古诗没有有效的句子！');
+                return;
+            }
+
+            var questionText = '';
+            var correctAnswer = '';
+
+            switch(randomMode) {
+                case 'fill':
+                    randomSentenceIndex = Math.floor(Math.random() * sentences.length);
+                    var sentence = sentences[randomSentenceIndex];
+                    var hideCount = Math.max(1, Math.ceil(sentence.length / 3));
+                    var hideStart = Math.floor(Math.random() * (sentence.length - hideCount));
+                    questionText = randomPoem.title + '（' + randomPoem.author + '）<br><br>';
+                    questionText += sentence.substring(0, hideStart);
+                    questionText += '<span style="color:var(--error);font-weight:bold;">' + '＿'.repeat(hideCount) + '</span>';
+                    questionText += sentence.substring(hideStart + hideCount);
+                    correctAnswer = sentence.substring(hideStart, hideStart + hideCount);
+                    break;
+
+                case 'prev':
+                    randomSentenceIndex = Math.floor(Math.random() * sentences.length);
+                    if (randomSentenceIndex === 0) {
+                        questionText = '《' + randomPoem.title + '》的开头是：<br><br>"' + sentences[0] + '"<br>请写出后一句：';
+                        correctAnswer = sentences.length > 1 ? sentences[1] : '';
+                    } else {
+                        questionText = randomPoem.title + '（' + randomPoem.author + '）<br><br>已知："' + sentences[randomSentenceIndex] + '"<br>请写出前一句：';
+                        correctAnswer = sentences[randomSentenceIndex - 1];
+                    }
+                    break;
+
+                case 'next':
+                    randomSentenceIndex = Math.floor(Math.random() * sentences.length);
+                    if (randomSentenceIndex === sentences.length - 1) {
+                        questionText = '《' + randomPoem.title + '》的结尾是：<br><br>"' + sentences[randomSentenceIndex] + '"<br>请写出前一句：';
+                        correctAnswer = sentences.length > 1 ? sentences[sentences.length - 2] : '';
+                    } else {
+                        questionText = randomPoem.title + '（' + randomPoem.author + '）<br><br>已知："' + sentences[randomSentenceIndex] + '"<br>请写出后一句：';
+                        correctAnswer = sentences[randomSentenceIndex + 1];
+                    }
+                    break;
+
+                case 'title':
+                    questionText = '这首诗的内容是：<br><br>"' + randomPoem.content + '"<br><br>请写出诗名和作者：';
+                    correctAnswer = randomPoem.title + '|||' + randomPoem.author;
+                    break;
+            }
+
+            document.getElementById('randomQuestionText').innerHTML = questionText;
+            document.getElementById('randomQuestion').style.display = 'block';
+            document.getElementById('randomAnswerArea').style.display = 'block';
+            document.getElementById('randomInput').value = '';
+            document.getElementById('randomResult').style.display = 'none';
+            document.getElementById('randomInput').setAttribute('data-answer', correctAnswer);
+        }
+
+        function startReviewMode() {
+            var records = loadRecords();
+            if (records.length === 0) {
+                alert('暂无练习记录，无法复习！');
+                return;
+            }
+
+            var allWrongChars = [];
+            for (var i = 0; i < records.length; i++) {
+                var wrongChars = records[i].wrong_chars || [];
+                for (var j = 0; j < wrongChars.length; j++) {
+                    allWrongChars.push({
+                        char: wrongChars[j],
+                        title: records[i].title,
+                        author: records[i].author
+                    });
+                }
+            }
+
+            if (allWrongChars.length === 0) {
+                alert('暂无错字记录，无法复习！');
+                return;
+            }
+
+            var randomIdx = Math.floor(Math.random() * allWrongChars.length);
+            var wrongItem = allWrongChars[randomIdx];
+            
+            var targetPoem = null;
+            for (var i = 0; i < poems.length; i++) {
+                if (poems[i].title === wrongItem.title && poems[i].author === wrongItem.author) {
+                    targetPoem = poems[i];
+                    break;
+                }
+            }
+
+            if (!targetPoem) {
+                alert('找不到对应的诗词！');
+                return;
+            }
+
+            randomPoem = targetPoem;
+            
+            var sentences = targetPoem.content.split(/[，。？！；]/).filter(function(s) { return s.trim(); });
+            var targetSentence = '';
+            for (var i = 0; i < sentences.length; i++) {
+                if (sentences[i].indexOf(wrongItem.char) !== -1) {
+                    targetSentence = sentences[i];
+                    randomSentenceIndex = i;
+                    break;
+                }
+            }
+
+            if (!targetSentence) {
+                alert('找不到包含错字的句子！');
+                return;
+            }
+
+            var charIndex = targetSentence.indexOf(wrongItem.char);
+            var questionText = targetPoem.title + '（' + targetPoem.author + '）<br><br>' +
+                targetSentence.substring(0, charIndex) +
+                '<span style="color:var(--error);font-weight:bold;">＿</span>' +
+                targetSentence.substring(charIndex + 1) +
+                '<br>请填写空白处缺失的字：';
+
+            document.getElementById('randomQuestionText').innerHTML = questionText;
+            document.getElementById('randomQuestion').style.display = 'block';
+            document.getElementById('randomAnswerArea').style.display = 'block';
+            document.getElementById('randomInput').value = '';
+            document.getElementById('randomResult').style.display = 'none';
+            document.getElementById('randomInput').setAttribute('data-answer', wrongItem.char);
+        }
+
+        function checkRandomAnswer() {
+            var userAnswer = document.getElementById('randomInput').value.trim();
+            var correctAnswer = document.getElementById('randomInput').getAttribute('data-answer');
+            var resultDiv = document.getElementById('randomResult');
+            var resultText = document.getElementById('randomResultText');
+
+            randomTotalCount++;
+            document.getElementById('randomCount').textContent = randomTotalCount;
+
+            // 用DP对齐逐个字符比对
+            var userClean = userAnswer.replace(/[^\u4e00-\u9fff]/g, '');
+            var correctClean = correctAnswer.replace(/[^\u4e00-\u9fff]/g, '');
+            var alignment = alignTwoStrings(userClean, correctClean);
+
+            // 统计
+            var correctCount = 0, wrongCount = 0, missCount = 0;
+            var wrongChars = [];
+            for (var i = 0; i < alignment.length; i++) {
+                if (alignment[i].status === 'correct') {
+                    correctCount++;
+                } else if (alignment[i].status === 'wrong') {
+                    wrongCount++;
+                    wrongChars.push(alignment[i].ch);
+                } else if (alignment[i].status === 'miss') {
+                    missCount++;
+                    wrongChars.push(alignment[i].ch);
+                }
+            }
+
+            var total = correctClean.length;
+            var accuracy = total > 0 ? Math.round(correctCount / total * 100) : 0;
+            var isCorrect = (wrongCount === 0 && missCount === 0);
+
+            // 保存随机默写记录
+            if (randomPoem && randomMode) {
+                var records = loadRecords();
+                records.push({
+                    title: randomPoem.title,
+                    author: randomPoem.author,
+                    accuracy: accuracy,
+                    time: new Date().toISOString(),
+                    wrong_chars: wrongChars,
+                    type: 'random',
+                    mode: randomMode,
+                    user_input: userAnswer
+                });
+                saveRecords(records);
+            }
+
+            if (isCorrect) {
+                resultDiv.className = 'random-result correct';
+                resultText.innerHTML = '<strong>✓ 正确！</strong><br>答案：' + escapeHtml(correctAnswer);
+                randomCorrectCount++;
+                document.getElementById('randomCorrect').textContent = randomCorrectCount;
+            } else {
+                resultDiv.className = 'random-result wrong';
+                resultText.innerHTML = '<strong>✗ 错误</strong><br>你的答案：' + escapeHtml(userAnswer) + '<br>正确答案：' + escapeHtml(correctAnswer);
+            }
+
+            resultDiv.style.display = 'block';
+        }
+
+        function nextRandomQuestion() {
+            if (!randomMode) {
+                alert('请先选择默写类型！');
+                return;
+            }
+            if (randomMode === 'review') {
+                startReviewMode();
+            } else {
+                generateRandomQuestion();
+            }
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
